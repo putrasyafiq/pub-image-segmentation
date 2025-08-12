@@ -261,8 +261,3 @@ def image_analysis():
 authenticate_project()
 init_clients()
 image_analysis()
-<<<<<<< HEAD
-```
-=======
-```
->>>>>>> 5c6cbe8 (init)
