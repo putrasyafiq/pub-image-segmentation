@@ -1,22 +1,3 @@
-# Image Segmentation using Gemini
-by putrasyafiq
-
-### What is this?
-This project aims to provide clarity on how image segmentation is done using Gemini 2.5. Image segmentation is a computer vision task that involves dividing a digital image into segments to identify objects and their boundaries. On Google Cloud, you can use Vertex AI for this purpose, for example, to locate bags on an airport conveyor belt.
-
-### How to use it?
-This project was performed in BigQuery Notebook (ipynb).
-The .py file attached is an AI-migration that has not been tested.
-
-
-This project is broken down into X parts:
-1. [Perform Imports](#step-0-perform-imports)
-2. [Declarations and Helper Functions for Image Segmentation](#step-1-declarations-and-helper-functions)
-3. [Running the Image Segmentation Workflow](#step-2-running-the-image-segmentation)
-
-
-# Step 0: Perform Imports
-```
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part, Image, HarmCategory, HarmBlockThreshold
 import google.auth as auth
@@ -40,45 +21,35 @@ import datetime
 
 from IPython.display import display, HTML
 
-%load_ext google.colab.data_table
-```
-
-# Step 1: Declarations and Helper Functions
-
-## 1.1 Notebook customizable declarations
-```
+# DECLARATIONS
 billing_project = "placeholder-project-id"
-gcp_location = "us-central1" #@param {type:"string"}
-model_name = "gemini-2.5-flash" #@param {type:"string"}
-```
+gcp_location = "us-central1"
+model_name = "gemini-2.5-flash"
+# embedding_model_name = "multimodalembedding@001" ## not in use
 
-## 1.2 GCS customizable configurations
-```
-gcs_bucket_name = "bucket_name" #@param {type:"string"}
-gcs_source_folder = "raw" #@param {type:"string"}
-gcs_processed_folder = "processed" #@param {type:"string"}
-gcs_search_folder = "search" #@param {type:"string"}
+# GCS Configurations
+# * Raw Folder: Image of found luggages before segmentation
+# * Processed Folder: Image of individual found luggage after segmentation
+# * Search Folder: Image of lost luggage
+gcs_bucket_name = "bucket-name"
+gcs_source_folder = "raw"
+gcs_processed_folder = "processed"
+gcs_search_folder = "search"
 storage_client = None
-```
 
-## 1.3 BigQuery Configurations
-```
-bq_table_id = "project-id.dataset-id.table-id" #@param {type:"string"}
+# BigQuery Configurations
+bq_table_id = "project-id.dataset-id.table-id"
 bigquery_client = None
-```
 
-## 1.4 System Instructions for BigQuery
-```
+# Modified System Instructions for BigQuery
 bounding_box_system_instructions = """
     Return bounding boxes as a JSON array. For each object, include:
     1. "label": A short name for the object (e.g., "red suitcase").
     2. "box_2d": The bounding box coordinates.
     Never return masks or code fencing. Limit to 25 objects.
     """
-```
 
-## 1.5 Authenticate Project
-```
+# Function: Authenticate Project
 def authenticate_project():
     global billing_project
     try:
@@ -94,15 +65,12 @@ def authenticate_project():
         print("❌ Authentication failed. ")
         print("Please configure Application Default Credentials by running:")
         print("gcloud auth application-default login")
-```
 
-## 1.6 Initialize Clients
-```
+# Initialize Clients
 def init_clients():
     global client, storage_client, bigquery_client
     try:
         client = vertexai.init(project=billing_project, location=gcp_location)
-        print(f"Warning: Your API key is not secured. Please review and modify.")
         print(f"✅ | GenAI Client initialized successfully!")
     except Exception as e:
         print(f"❌ GenAI Client authentication failed. {e}")
@@ -118,10 +86,8 @@ def init_clients():
         print(f"✅ | BigQuery Client initialized successfully!")
     except Exception as e:
         print(f"❌ BigQuery Client initialization failed. {e}")
-```
 
-## 1.7 Helper Functions
-```
+# Helper Functions
 # PARSE JSONS
 def parse_json(json_output: str):
     lines = json_output.splitlines()
@@ -135,13 +101,11 @@ def parse_json(json_output: str):
 # A helper function that helps with rendering images from URL in colab results
 def get_image_tag(gcs_uri):
     try:
-        return f'<img src="{gcs_uri}" width="150" />'
+        return f'<img src=\"{gcs_uri}\" width=\"150\" />'
     except Exception as e:
         return "Image not found"
-```
 
-## 1.8 Drawing Utilities
-```
+# Drawing Utility
 additional_colors = [colorname for (colorname, colorcode) in ImageColor.colormap.items()]
 
 def plot_bounding_boxes(im, bounding_boxes, source_image_name):
@@ -214,10 +178,8 @@ def plot_bounding_boxes(im, bounding_boxes, source_image_name):
 
     except Exception as e:
         print(f"❌ Error uploading main image to GCS. {e}")
-```
 
-## 1.9 Detecting 2D Bounds of Image to Segment
-```
+# Detecting 2D Bounds
 def detect_2d_bound_box(image_name, user_prompt):
     global client
     try:
@@ -246,23 +208,14 @@ def detect_2d_bound_box(image_name, user_prompt):
         print(f"❌ Error: File not found in GCS at gs://{gcs_bucket_name}/{source_blob_name}")
     except Exception as e:
         print(f"❌ An error occurred during image processing: {e}")
-```
 
-## 1.10 Helper Function for Image Analysis
-```
+# Perform Image Analysis
 def image_analysis():
-  file_name="bar_3888.jpg" #@param {type:"string"}
+  file_name="file-name.jpg"
   user_prompt="Detect bags and luggages only."
   detect_2d_bound_box(file_name, user_prompt)
-```
 
-# Step 2: Running the Image Segmentation
-```
+# Running the workflow
 authenticate_project()
 init_clients()
 image_analysis()
-<<<<<<< HEAD
-```
-=======
-```
->>>>>>> 5c6cbe8 (init)
